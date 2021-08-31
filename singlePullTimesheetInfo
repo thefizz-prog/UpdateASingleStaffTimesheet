@@ -4,7 +4,7 @@ Sub singlepullTimesheetInfo(TheSourceFile, staffCode, weekToEdit1, currentWorkWe
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     ' The macro is used when a staffs timesheet hours are updated at a later date and there are incorrect hours entered in project cc files
-    ' The macro scans the file for a match with the given staff code. Info is pulled from the updated timesheet and places in the correct year, week and project code for the staff
+    ' The macro scans the file for a match with the given staff code. Info is pulled from the updated timesheet and places into the correct year, week and project code for the staff code
     ' For every new entry the date of the edit is recorded as a comment
     ' macro functions essentially the same as pullTimesheetInfo but it adds the week and the exact time that the cell contents were updated
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
