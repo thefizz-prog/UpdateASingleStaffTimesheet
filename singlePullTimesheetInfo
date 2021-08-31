@@ -1,0 +1,203 @@
+Sub singlepullTimesheetInfo(TheSourceFile, staffCode, weekToEdit1, currentWorkWeek1)
+    
+    
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ' The macro is used when a staffs timesheet hours are updated at a later date and there are incorrect hours entered in project cc files
+    ' The macro scans the file for a match with the given staff code. Info is pulled from the updated timesheet and places in the correct year, week and project code for the staff
+    ' For every new entry the date of the edit is recorded as a comment
+    ' macro functions essentially the same as pullTimesheetInfo but it adds the week and the exact time that the cell contents were updated
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+    
+    
+    
+    
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    ' ARGUMENTS
+    ' TheSourceFile
+    ' staffCode
+    ' weekToEdit1
+    ' currentWorkWeek1
+    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                                    ' TheSourceFile will be a staff timesheet variable supplied by pullTimesheetInfo P.A.D flow & weekToEdit is a variable that is supplied by pullTimesheetInfo P.A.D flow
+                                                    ' staffCode is supplied by the loop in PAD and points the sub to open the correct staff timehsheet file to pull the timesheet info from
+    Dim src As Workbook                             ' declaring source workbook (source = staff timesheet = variable)
+    Dim currentWeekWorksheet As Worksheet           ' declaring worksheet for the current work week
+    Dim master As Worksheet                          ' declaring master workbook (yearRow.e this project cost control file)
+    Dim WeekNumber As String                        ' declaring variable to get weeknumer
+    Dim temp As String                              ' temp variable for int to string conversion
+    Dim currentWorkWeek As String
+        currentWorkWeek = currentWorkWeek1
+
+
+    Set master = ThisWorkbook.Worksheets("Entry")                                   ' Setting master workbook to point towards the Entry worksheet of this project cost control doc.
+    Set src = Workbooks.Open(TheSourceFile, 0, True)        ' Open the source file. UPDATE LINKS = 0 here as version claudine sent me has a broken link. Please consult with Gordon.
+    temp = CStr(weekToEdit1)                                'convert week number to string
+    WeekNumber = "WW" + temp                       ' append week number to WW so it matches with staff timesheet.worksheet. naming convention
+    
+
+    
+    Set currentWeekWorksheet = src.Worksheets(WeekNumber)       ' gets the worksheet in the staff timesheet that matches the current workweek number
+
+
+    
+    
+    Dim last_row As Long
+    last_row = master.Cells(Rows.Count, 1).End(xlUp).Row          'variable to hold #columns/#staff on the Entry worksheet to loop through column "D" to match the year on Entry worksheet with the year on the staff timesheet
+    last_column = master.Cells(2, Columns.Count).End(xlToLeft).Column       'variable to hold #columns/#project codes on this project cost control worksheet. If columns are added here, fine but the starting location must always be the same!
+    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+    
+
+    
+    
+    ' Loops from from row =1 to last used row in Entry worksheet
+    For yearRow = 1 To last_row
+        Dim thisFileEntryWeekNumber As String
+        Dim weekToEdit As String
+        Dim thisFileProjectNumber As String
+        Dim temp4 As String
+
+
+        Dim thisFileProjectCodes As String
+        Dim staffTimesheetProjectCode() As String
+
+        Dim thisFileWorkWeek As String
+        Dim thisFileStaffInitials As String
+        Dim staffTimesheetStaffInitials As String
+
+        Dim theDate As Date
+            theDate = Now()         ' needed to add the edited date on the entry worksheet of this workbook
+        
+        thisFileProjectNumber = CStr(master.Cells(2, 1).Value)  ' PROJECT Number for this project cost control file.
+        
+        ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        ' If match for year on staff timesheet and year in project cc file
+        ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+        If master.Cells(yearRow, 4).Value = currentWeekWorksheet.Cells(1, 8).Value Then   ' loops through available years on project cost control document until match found with year on staff timesheet
+           
+
+           For yearWeekRow = yearRow To last_row
+                thisFileEntryWeekNumber = CStr(master.Cells(yearWeekRow, 3).Value)  ' Gets WEEK NUMBER - loops through all years in which the current project cost control file exists. converts to string for comparison
+                weekToEdit = CStr(weekToEdit1)           'gets CURRENT YEAR in staff timesheet worksheet
+            
+            
+            ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+            ' If match for week on staff timesheet and week in project cc file
+            ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+            
+            If thisFileEntryWeekNumber = weekToEdit Then
+
+               ' msgbox "YES, Match for year:" & currentWeekWorksheet.Cells(1, 8).Value & vbNewLine & " Master week:" & master.Cells(yearRow, 3).Value & " Timesheet week:" & temp
+
+                For yearWeekResourceRow = yearWeekRow To last_row
+                    thisFileWorkWeek = CStr(master.Cells(yearWeekResourceRow, 1).Value)          ' converts column A/ Wk number to a string for comparison to weekToEdit (given from PAD)
+                    thisFileStaffInitials = CStr(master.Cells(yearWeekResourceRow, 4).Value)          ' converts STAFF INITALS on project cost control -Entry sheet for comparions against staff timesheet - staff initials
+                    staffTimesheetStaffInitials = CStr(currentWeekWorksheet.Cells(1, 11).Value)          ' GETS staff timesheet - staff initals
+
+
+
+                    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                    ' If match for resource ( Initials) on staff timesheet and resource (initials) in project cc file
+                    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                    If weekToEdit = thisFileWorkWeek And thisFileStaffInitials = staffTimesheetStaffInitials Then                           ' if project cost control - current week + staff timsheet - current week match AND Staff timesheet - staff initial matches project cost control - active staff - staff initials
+                       ' msgbox "Pointing at row:" & yearWeekResourceRow
+
+                        For rowStafftimesheet = 7 To 19
+                            If currentWeekWorksheet.Cells(rowStafftimesheet, 1).Value = thisFileProjectNumber Then ' if project cost control project code = Project number on staff timesheet
+
+                           ' msgbox "searching for project codes:" & currentWeekWorksheet.Cells(rowStafftimesheet, 1).Value      ' project code to search for
+                            'MsgBox "Staff timesheet point: " & currentWeekWorksheet.Cells(rowStafftimesheet, 1).Value & "-" & currentWeekWorksheet.Cells(rowStafftimesheet, 2).Value & "-" & currentWeekWorksheet.Cells(rowStafftimesheet, 5).Value ' just confirming that info is correct
+                                For projectCodeColumn = 6 To last_column
+                                ' MsgBox "Looping though Project code:" & master.Cells(2, projectCodeColumn).Value ' just ensuring that all project codes are captured
+
+
+
+                                    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                    ' Parses the project code (three characters only) - this is needed to account for the possibility that the application.enable events is turned off / not working on staff timesheet
+                                    ' and the project code has the description alongside the project code i.e C01: Doc - Quality
+                                    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+
+                                    thisFileProjectCodes = master.Cells(2, projectCodeColumn).Value ' loops through project cost control project codes &  converts to string for comparison
+                                    staffTimesheetProjectCode = Split(CStr(currentWeekWorksheet.Cells(rowStafftimesheet, 2).Value), ":") ' ' loops through staff timesheet project codes &  converts to string for comparison and parses 3 digit code before the ":" to compars against project cost control - project code
+                                    
+                                    ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                    ' If match with parsed project code then
+                                    '''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                    If thisFileProjectCodes = staffTimesheetProjectCode(0) Then   ' if project cost control - project code = staff timesheet project code
+                                    '    MsgBox "thisFileProjectCodes:" & thisFileProjectCodes & vbNewLine & "staffTimesheetProjectCode:" & staffTimesheetProjectCode(0)
+                                        Dim thisFileEntryExistingHours As Integer        ' variable to hold cell value if project cost control - project code cell already has a value it it
+                                        'MsgBox "thisFileProjectCodes:" & thisFileProjectCodes
+                                        'MsgBox "Monday" & currentWeekWorksheet.Cells(rowStafftimesheet, 6).Value & vbNewLine & "Tuesday" & currentWeekWorksheet.Cells(rowStafftimesheet, 9).Value & vbNewLine & "Wednesday" & currentWeekWorksheet.Cells(rowStafftimesheet, 12).Value & vbNewLine & "Thursday" & currentWeekWorksheet.Cells(rowStafftimesheet, 15).Value & vbNewLine & "Friday" & currentWeekWorksheet.Cells(rowStafftimesheet, 18).Value & vbNewLine & "Saturday" & currentWeekWorksheet.Cells(rowStafftimesheet, 21).Value & vbNewLine & "Sunday" & currentWeekWorksheet.Cells(rowStafftimesheet, 24).Value
+                                        
+                                        
+                                        
+                                        '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                        ' If for the staff initials for the week to edit has existing enteries, store these enteries and comments and clear the contens of the cell
+                                        '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                        If Not IsEmpty(master.Cells(yearWeekResourceRow, projectCodeColumn).Value) Then   ' if project cost control - project code cell !=empty
+                                           
+                                           
+                                                ''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                                ' Temporary variable that holds existing values for the cell so that contents are not overwritten
+                                                ' Accounts for possibility that staff uses two seperate rows for the same project code
+                                                '''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                            
+                                                 thisFileEntryExistingHours = master.Cells(yearWeekResourceRow, projectCodeColumn).Value                ' hold this value
+                                            '     MsgBox "Temp variable:" & thisFileEntryExistingHours & vbNewLine & "Row:" & yearWeekResourceRow & vbNewLine & "Column" & projectCodeColumn & "Master:" & master.Cells(yearWeekResourceRow, projectCodeColumn).Value
+                                            
+                                    
+                                            '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                            ' If the cell does not have a comment then add new comment
+                                            '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                            If master.Cells(yearWeekResourceRow, projectCodeColumn).CommentThreaded Is Nothing Then
+                                                master.Cells(yearWeekResourceRow, projectCodeColumn).AddCommentThreaded ("Manual Overwrite" & vbNewLine & "Edited: " & theDate & vbNewLine & "Week of Edit: " & currentWorkWeek)
+                                            Else
+                                            
+                                                '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                                ' If the cell does  have a comment then add threaded comment
+                                                '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                                master.Cells(yearWeekResourceRow, projectCodeColumn).CommentThreaded.AddReply ("Manual Overwrite" & vbNewLine & "Edited: " & theDate & vbNewLine & "Week of Edit: " & currentWorkWeek)
+                                            End If
+                                        End If
+                                            master.Cells(yearWeekResourceRow, projectCodeColumn).Value = (currentWeekWorksheet.Cells(rowStafftimesheet, 7).Value + currentWeekWorksheet.Cells(rowStafftimesheet, 10).Value + currentWeekWorksheet.Cells(rowStafftimesheet, 13).Value + currentWeekWorksheet.Cells(rowStafftimesheet, 16).Value + currentWeekWorksheet.Cells(rowStafftimesheet, 19).Value + currentWeekWorksheet.Cells(rowStafftimesheet, 22).Value + currentWeekWorksheet.Cells(rowStafftimesheet, 25).Value + thisFileEntryExistingHours)  ' adds all the hours under staff timesheet - project code including previous project cost control - project code values. ensures that hours are not overwritten
+                                            
+                                            'MsgBox "Value:" & master.Cells(yearWeekResourceRow, projectCodeColumn).Value & vbNewLine & "Row:" & yearWeekResourceRow & vbNewLine & "Column:" & projectCodeColumn
+                                            
+                                            thisFileEntryExistingHours = 0
+                                            '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                            ' If the cell does not have a comment then add new comment
+                                            '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                            If master.Cells(yearWeekResourceRow, projectCodeColumn).CommentThreaded Is Nothing Then
+                                                master.Cells(yearWeekResourceRow, projectCodeColumn).AddCommentThreaded ("Manual Overwrite" & vbNewLine & "Edited: " & theDate & vbNewLine & "Week of Edit: " & currentWorkWeek)
+                                            Else
+                                                '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                                ' If the cell does  have a comment then add threaded comment
+                                                '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
+                                                master.Cells(yearWeekResourceRow, projectCodeColumn).CommentThreaded.AddReply ("Manual Overwrite" & vbNewLine & "Edited: " & theDate & vbNewLine & "Week of Edit: " & currentWorkWeek)
+                                            End If
+                                            
+                                    End If
+
+                                Next projectCodeColumn
+
+                            End If
+
+                        Next rowStafftimesheet
+                    End If
+               Next yearWeekResourceRow
+
+            End If
+        Next yearWeekRow
+        End If
+    Next yearRow
+    
+    
+    master.Cells(2, 4).Value = theDate  ' Add the date of edit as the final change to the workbook before saving
+    src.Close False
+    Set src = Nothing
+
+
+
+End Sub
