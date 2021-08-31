@@ -16,10 +16,10 @@ Sub singlepullTimesheetInfo(TheSourceFile, staffCode, weekToEdit1, currentWorkWe
     
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
     ' ARGUMENTS
-    ' TheSourceFile
-    ' staffCode
-    ' weekToEdit1
-    ' currentWorkWeek1
+    ' TheSourceFile = The file path of the staffs timesheet 
+    ' staffCode  = unique staff indentifier
+    ' weekToEdit1 = the week specified by the office PA + the week chosen to clear all timesheet enteries for this project cost control file for the given staff code 
+    ' currentWorkWeek1  = the current work week. This is used to record the date of the edit to ensure that all edits are tracked 
     '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''
                                                     ' TheSourceFile will be a staff timesheet variable supplied by pullTimesheetInfo P.A.D flow & weekToEdit is a variable that is supplied by pullTimesheetInfo P.A.D flow
                                                     ' staffCode is supplied by the loop in PAD and points the sub to open the correct staff timehsheet file to pull the timesheet info from
